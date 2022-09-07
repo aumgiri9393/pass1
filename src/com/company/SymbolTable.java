@@ -8,8 +8,7 @@ public class SymbolTable {
     public static void main(String[] args) throws FileNotFoundException {
         File myFile = new File("input3.txt");
         Scanner read = new Scanner(myFile);
-        int line_count=0, LC=0, symbolLine=0, litLine = 0;
-        int lc = LC;
+        int line_count=0, LC=0, symbolLine=0, litLine = 0, lastIndex=0,dsAddress=0;
         final int max = 100;
         String[][] symbolTable = new String[max][2];
         String[][] litTable = new String[max][2];
@@ -20,15 +19,24 @@ public class SymbolTable {
                 LC = Integer.parseInt(tokens[1]);
             }
             else {
-                if(!tokens[0].equals("")){
+                if(!tokens[0].equals("") && !tokens[1].equalsIgnoreCase("DC") && !tokens[1].equalsIgnoreCase("DS")){
                     symbolTable[symbolLine][0] = tokens[0];
                     symbolTable[symbolLine][1] = Integer.toString(LC-1);
                     symbolLine++;
                 }
-                else if(tokens[1].equalsIgnoreCase("DS") || tokens[1].equalsIgnoreCase("DC")){
+                else if( tokens[1].equalsIgnoreCase("DC")){
                     symbolTable[symbolLine][0] = tokens[0];
                     symbolTable[symbolLine][1] = Integer.toString(LC-1);
                     symbolLine++;
+                }
+
+                else if(tokens[1].equalsIgnoreCase("DS")){
+                    symbolTable[symbolLine][0] = tokens[0];
+                    dsAddress = LC + Integer.parseInt(tokens[2]);
+                    System.out.println("dsAddress="+dsAddress);
+                    symbolTable[symbolLine][1] = Integer.toString(LC-1);
+                    symbolLine++;
+                    LC = dsAddress;
                 }
 
                 if(tokens.length==3 && tokens[2].contains("=")){
@@ -37,13 +45,28 @@ public class SymbolTable {
                     litTable[litLine][1] = Integer.toString(LC-1);
                     litLine++;
                 }
+                if(tokens[1].equalsIgnoreCase("LTORG")){
+                    LC--;
+                    int lastAdd = LC;
+                    for(int i=0;i<litLine;i++) {
+                        litTable[i][1] = Integer.toString(lastAdd);
+                        lastAdd++;
+                    }
+                    LC++;
+                    lastIndex = litLine;
+                }
+                if(tokens[1].equalsIgnoreCase("STOP") || tokens[1].equalsIgnoreCase("END")){
+                    LC--;
+                }
             }
             line_count++;
             LC++;
         }
-        int lastAdd = Integer.parseInt(symbolTable[symbolLine-1][1]);
-        lastAdd++;
-        for(int i=0;i<litLine;i++) {
+//        int lastAdd = Integer.parseInt(symbolTable[symbolLine-1][1]);
+        int lastAdd = dsAddress;
+        lastAdd--;
+//        System.out.println("lastIndex= "+lastIndex);
+        for(int i=lastIndex;i<litLine;i++) {
             litTable[i][1] = Integer.toString(lastAdd);
             lastAdd++;
         }
